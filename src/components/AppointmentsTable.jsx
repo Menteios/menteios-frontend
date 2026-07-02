@@ -5,6 +5,18 @@ const THERAPY_STYLES = {
   Gestalt: 'bg-emerald-50 text-emerald-600',
 }
 
+const MONTH_ABBREVIATIONS = [
+  'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
+]
+
+// Appointments arrive with ISO dates (e.g. '2026-06-09') since that's what an
+// API/DB would return; formatting for display is this component's job.
+function formatFecha(isoDate) {
+  const [year, month, day] = isoDate.split('-')
+  return `${day} ${MONTH_ABBREVIATIONS[Number(month) - 1]} ${year}`
+}
+
 export default function AppointmentsTable({ appointments }) {
   return (
     <table className="mt-4 w-full border-collapse text-left text-sm">
@@ -19,14 +31,14 @@ export default function AppointmentsTable({ appointments }) {
       <tbody className="divide-y divide-gray-50">
         {appointments.map((appointment) => (
           <tr key={appointment.id}>
-            <td className="px-4 py-4 font-medium text-gray-800">{appointment.nombre}</td>
-            <td className="px-4 py-4 text-gray-500">{appointment.fecha}</td>
+            <td className="px-4 py-4 font-medium text-gray-800">{appointment.pacienteNombre}</td>
+            <td className="px-4 py-4 text-gray-500">{formatFecha(appointment.fecha)}</td>
             <td className="px-4 py-4 text-gray-500">${appointment.monto}</td>
             <td className="px-4 py-4">
               <span
-                className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${THERAPY_STYLES[appointment.terapia] ?? 'bg-gray-100 text-gray-600'}`}
+                className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${THERAPY_STYLES[appointment.tipoTerapia] ?? 'bg-gray-100 text-gray-600'}`}
               >
-                {appointment.terapia}
+                {appointment.tipoTerapia}
               </span>
             </td>
           </tr>
