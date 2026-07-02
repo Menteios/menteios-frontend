@@ -9,10 +9,10 @@ const devServerUrl = process.env.VITE_DEV_SERVER_URL ?? 'http://localhost:5173'
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 480,
-    height: 760,
-    minWidth: 420,
-    minHeight: 680,
+    width: 1280,
+    height: 820,
+    minWidth: 960,
+    minHeight: 640,
     center: true,
     backgroundColor: '#ffffff',
     autoHideMenuBar: true,
