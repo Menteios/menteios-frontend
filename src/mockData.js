@@ -49,6 +49,7 @@ export const citas = [
     pacienteId: 1,
     pacienteNombre: 'María García',
     fecha: '2026-06-09',
+    hora: '10:00',
     monto: 800,
     tipoTerapia: 'Cognitivo-conductual',
   },
@@ -57,6 +58,7 @@ export const citas = [
     pacienteId: 2,
     pacienteNombre: 'Carlos López',
     fecha: '2026-06-09',
+    hora: '12:00',
     monto: 650,
     tipoTerapia: 'Terapia breve',
   },
@@ -65,6 +67,7 @@ export const citas = [
     pacienteId: 3,
     pacienteNombre: 'Ana Martínez',
     fecha: '2026-06-10',
+    hora: '09:30',
     monto: 800,
     tipoTerapia: 'Psicoanálisis',
   },
@@ -73,10 +76,52 @@ export const citas = [
     pacienteId: 4,
     pacienteNombre: 'Pedro Sánchez',
     fecha: '2026-06-10',
+    hora: '11:00',
+    monto: 700,
+    tipoTerapia: 'Gestalt',
+  },
+  {
+    id: 5,
+    pacienteId: 1,
+    pacienteNombre: 'María García',
+    fecha: '2026-06-13',
+    hora: '09:00',
+    monto: 800,
+    tipoTerapia: 'Cognitivo-conductual',
+  },
+  {
+    id: 6,
+    pacienteId: 3,
+    pacienteNombre: 'Ana Martínez',
+    fecha: '2026-06-13',
+    hora: '11:30',
+    monto: 800,
+    tipoTerapia: 'Psicoanálisis',
+  },
+  {
+    id: 7,
+    pacienteId: 2,
+    pacienteNombre: 'Carlos López',
+    fecha: '2026-06-15',
+    hora: '10:00',
+    monto: 650,
+    tipoTerapia: 'Terapia breve',
+  },
+  {
+    id: 8,
+    pacienteId: 4,
+    pacienteNombre: 'Pedro Sánchez',
+    fecha: '2026-06-17',
+    hora: '15:00',
     monto: 700,
     tipoTerapia: 'Gestalt',
   },
 ]
+
+// Tipos de terapia disponibles al agendar una cita — se reutiliza el mismo
+// vocabulario que ya usan AppointmentsTable/Pacientes para mantener las
+// píldoras de color consistentes en toda la app.
+export const TIPOS_TERAPIA = ['Cognitivo-conductual', 'Terapia breve', 'Psicoanálisis', 'Gestalt']
 
 export const metricasHome = {
   totalPacientes: 48,

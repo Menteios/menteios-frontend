@@ -2,6 +2,7 @@ import { useState } from 'react'
 import DashboardLayout from './layouts/DashboardLayout'
 import Home from './pages/Home'
 import Pacientes from './pages/Pacientes'
+import Citas from './pages/Citas'
 import ComingSoon from './pages/ComingSoon'
 
 // 'inicio' es la pantalla de entrada (Resumen general) y corresponde al
@@ -11,7 +12,7 @@ import ComingSoon from './pages/ComingSoon'
 const PAGE_RENDERERS = {
   inicio: (navigate) => <Home onNavigate={navigate} />,
   pacientes: () => <Pacientes />,
-  citas: () => <ComingSoon title="Citas del día" />,
+  citas: () => <Citas />,
   sesiones: () => <ComingSoon title="Sesiones" />,
   reportes: () => <ComingSoon title="Reportes" />,
 }
