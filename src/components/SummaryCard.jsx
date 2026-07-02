@@ -3,9 +3,13 @@ const BADGE_TONE_STYLES = {
   blue: 'bg-sky-50 text-sky-600',
 }
 
-export default function SummaryCard({ label, value, badge, badgeTone, icon: Icon }) {
+export default function SummaryCard({ label, value, badge, badgeTone, icon: Icon, onClick }) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+    <button
+      type="button"
+      onClick={onClick}
+      className="cursor-pointer rounded-2xl border border-gray-100 bg-white p-5 text-left shadow-sm transition-shadow hover:shadow-md"
+    >
       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
         <Icon className="h-5 w-5" />
       </div>
@@ -16,6 +20,6 @@ export default function SummaryCard({ label, value, badge, badgeTone, icon: Icon
       >
         {badge}
       </span>
-    </div>
+    </button>
   )
 }

@@ -1,8 +1,9 @@
 import { TreeLogo, MenteiosWordmark } from './MenteiosLogo'
-import { UsersIcon, CalendarIcon, SessionsIcon, ReportsIcon } from './icons/DashboardIcons'
+import { HomeIcon, UsersIcon, CalendarIcon, SessionsIcon, ReportsIcon } from './icons/DashboardIcons'
 
 // Mock nav config — will map 1:1 to routes once real navigation/DB-backed pages exist.
 const NAV_ITEMS = [
+  { id: 'inicio', label: 'Inicio', icon: HomeIcon },
   { id: 'pacientes', label: 'Pacientes', icon: UsersIcon },
   { id: 'citas', label: 'Citas del día', icon: CalendarIcon },
   { id: 'sesiones', label: 'Sesiones', icon: SessionsIcon },
