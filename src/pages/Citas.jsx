@@ -3,10 +3,8 @@ import Calendar from '../components/Calendar'
 import AgendaPanel from '../components/AgendaPanel'
 import CitaFormModal from '../components/CitaFormModal'
 import { PlusIcon } from '../components/icons/DashboardIcons'
-import { citas as citasIniciales } from '../mockData'
 
-export default function Citas() {
-  const [citas, setCitas] = useState(citasIniciales)
+export default function Citas({ citas, onAddCita }) {
   const [currentYear, setCurrentYear] = useState(2026)
   const [currentMonth, setCurrentMonth] = useState(5) // Junio
   const [selectedDate, setSelectedDate] = useState('2026-06-09')
@@ -41,7 +39,7 @@ export default function Citas() {
   }
 
   function handleNuevaCita(datos) {
-    setCitas((prev) => [...prev, { id: Date.now(), ...datos }])
+    onAddCita(datos)
     setShowModal(false)
   }
 

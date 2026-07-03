@@ -6,15 +6,21 @@ import { pacientes, TIPOS_TERAPIA } from '../mockData'
 const INPUT_CLASSES =
   'w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-brand-500'
 
+const OTRO_TERAPIA = 'Otro (Especificar...)'
+const OPCIONES_TERAPIA = [...TIPOS_TERAPIA, OTRO_TERAPIA]
+
 export default function CitaFormModal({ open, defaultFecha, onClose, onSubmit }) {
   const [form, setForm] = useState(() => ({
     pacienteId: pacientes[0]?.id ?? '',
     fecha: defaultFecha,
     hora: '',
     tipoTerapia: TIPOS_TERAPIA[0],
+    tipoTerapiaOtro: '',
   }))
 
   if (!open) return null
+
+  const esOtraTerapia = form.tipoTerapia === OTRO_TERAPIA
 
   function handleChange(field) {
     return (event) => setForm((prev) => ({ ...prev, [field]: event.target.value }))
@@ -23,12 +29,14 @@ export default function CitaFormModal({ open, defaultFecha, onClose, onSubmit })
   function handleSubmit(event) {
     event.preventDefault()
     const paciente = pacientes.find((p) => p.id === Number(form.pacienteId))
+    const tipoTerapiaFinal = esOtraTerapia ? form.tipoTerapiaOtro.trim() : form.tipoTerapia
+
     onSubmit({
       pacienteId: paciente.id,
       pacienteNombre: paciente.nombre,
       fecha: form.fecha,
       hora: form.hora,
-      tipoTerapia: form.tipoTerapia,
+      tipoTerapia: tipoTerapiaFinal,
     })
   }
 
@@ -89,12 +97,29 @@ export default function CitaFormModal({ open, defaultFecha, onClose, onSubmit })
             onChange={handleChange('tipoTerapia')}
             className={INPUT_CLASSES}
           >
-            {TIPOS_TERAPIA.map((tipo) => (
+            {OPCIONES_TERAPIA.map((tipo) => (
               <option key={tipo} value={tipo}>
                 {tipo}
               </option>
             ))}
           </select>
+
+          <div
+            className={`grid transition-all duration-300 ease-in-out ${
+              esOtraTerapia ? 'mt-2 grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+            }`}
+          >
+            <div className="overflow-hidden">
+              <input
+                type="text"
+                required={esOtraTerapia}
+                value={form.tipoTerapiaOtro}
+                onChange={handleChange('tipoTerapiaOtro')}
+                placeholder="Escribe el tipo de terapia..."
+                className={INPUT_CLASSES}
+              />
+            </div>
+          </div>
         </Field>
 
         <div className="mt-2 flex justify-end gap-3">

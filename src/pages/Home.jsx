@@ -1,7 +1,7 @@
 import SummaryCard from '../components/SummaryCard'
 import AppointmentsTable from '../components/AppointmentsTable'
 import { UsersIcon, CalendarIcon, SessionsIcon, ReportsIcon } from '../components/icons/DashboardIcons'
-import { citas, metricasHome } from '../mockData'
+import { metricasHome } from '../mockData'
 
 // Presentation metadata for each summary card — pairs each numeric key from
 // `metricasHome` (the backend-shaped data) with its label/icon/badge copy,
@@ -13,7 +13,7 @@ const METRIC_CARDS_CONFIG = [
   { key: 'reportes', label: 'Reportes', badge: 'Actualizado hoy', badgeTone: 'blue', icon: ReportsIcon, targetTab: 'reportes' },
 ]
 
-export default function Home({ onNavigate }) {
+export default function Home({ onNavigate, citas }) {
   return (
     <>
       <h1 className="text-2xl font-semibold text-gray-900">Resumen general</h1>
