@@ -4,6 +4,11 @@
  * for fetch/query calls — no changes needed in the components that consume them.
  */
 
+// Referencia de "hoy" para el mock, ya que los datos ficticios viven en
+// junio de 2026. Cuando se conecte al backend real, esto se reemplaza por
+// la fecha del sistema (ej. new Date().toISOString().slice(0, 10)).
+export const HOY = '2026-06-09'
+
 export const pacientes = [
   {
     id: 1,
@@ -123,9 +128,11 @@ export const citas = [
 // píldoras de color consistentes en toda la app.
 export const TIPOS_TERAPIA = ['Cognitivo-conductual', 'Terapia breve', 'Psicoanálisis', 'Gestalt']
 
+// "citasDelDia" ya no vive acá: se calcula en tiempo real filtrando `citas`
+// por HOY (ver src/pages/Home.jsx), para que nunca se desincronice de la
+// fuente de verdad compartida en App.jsx.
 export const metricasHome = {
   totalPacientes: 48,
-  citasDelDia: 7,
   sesionesEstaSemana: 124,
   reportes: 15,
 }

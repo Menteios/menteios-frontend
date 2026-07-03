@@ -2,13 +2,16 @@ import { useMemo, useState } from 'react'
 import Calendar from '../components/Calendar'
 import AgendaPanel from '../components/AgendaPanel'
 import CitaFormModal from '../components/CitaFormModal'
+import ConfirmDeleteCitaModal from '../components/ConfirmDeleteCitaModal'
 import { PlusIcon } from '../components/icons/DashboardIcons'
+import { HOY } from '../mockData'
 
-export default function Citas({ citas, onAddCita }) {
+export default function Citas({ citas, onAddCita, onDeleteCita }) {
   const [currentYear, setCurrentYear] = useState(2026)
   const [currentMonth, setCurrentMonth] = useState(5) // Junio
-  const [selectedDate, setSelectedDate] = useState('2026-06-09')
+  const [selectedDate, setSelectedDate] = useState(HOY)
   const [showModal, setShowModal] = useState(false)
+  const [appointmentToDelete, setAppointmentToDelete] = useState(null)
 
   const citasFechas = useMemo(() => new Set(citas.map((cita) => cita.fecha)), [citas])
 
@@ -19,6 +22,8 @@ export default function Citas({ citas, onAddCita }) {
         .sort((a, b) => a.hora.localeCompare(b.hora)),
     [citas, selectedDate],
   )
+
+  const citaEnConfirmacion = citas.find((cita) => cita.id === appointmentToDelete) ?? null
 
   function handlePrevMonth() {
     if (currentMonth === 0) {
@@ -41,6 +46,11 @@ export default function Citas({ citas, onAddCita }) {
   function handleNuevaCita(datos) {
     onAddCita(datos)
     setShowModal(false)
+  }
+
+  function handleConfirmarEliminacion(cita) {
+    onDeleteCita(cita.id)
+    setAppointmentToDelete(null)
   }
 
   return (
@@ -72,7 +82,11 @@ export default function Citas({ citas, onAddCita }) {
           />
         </div>
 
-        <AgendaPanel selectedDate={selectedDate} citasDelDia={citasDelDia} />
+        <AgendaPanel
+          selectedDate={selectedDate}
+          citasDelDia={citasDelDia}
+          onDeleteCita={(cita) => setAppointmentToDelete(cita.id)}
+        />
       </div>
 
       {showModal && (
@@ -83,6 +97,13 @@ export default function Citas({ citas, onAddCita }) {
           onSubmit={handleNuevaCita}
         />
       )}
+
+      <ConfirmDeleteCitaModal
+        open={appointmentToDelete !== null}
+        cita={citaEnConfirmacion}
+        onCancel={() => setAppointmentToDelete(null)}
+        onConfirm={handleConfirmarEliminacion}
+      />
     </>
   )
 }

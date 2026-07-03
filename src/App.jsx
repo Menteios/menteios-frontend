@@ -10,11 +10,11 @@ import { citas as citasIniciales } from './mockData'
 // primer ítem del Sidebar. Cada id renderiza su propia pantalla — nada cae
 // de vuelta al Home por defecto. Cada renderer recibe el mismo `ctx`
 // (navegación + citas compartidas) y toma solo lo que necesita, para que
-// una cita creada en Citas se refleje también en la tabla del Home.
+// una cita creada o cancelada en Citas se refleje también en la tabla del Home.
 const PAGE_RENDERERS = {
   inicio: (ctx) => <Home onNavigate={ctx.navigate} citas={ctx.citas} />,
   pacientes: () => <Pacientes />,
-  citas: (ctx) => <Citas citas={ctx.citas} onAddCita={ctx.addCita} />,
+  citas: (ctx) => <Citas citas={ctx.citas} onAddCita={ctx.addCita} onDeleteCita={ctx.deleteCita} />,
   sesiones: () => <ComingSoon title="Sesiones" />,
   reportes: () => <ComingSoon title="Reportes" />,
 }
@@ -28,9 +28,13 @@ function App() {
     setCitas((prev) => [...prev, { id: Date.now(), ...datos }])
   }
 
+  function deleteCita(id) {
+    setCitas((prev) => prev.filter((cita) => cita.id !== id))
+  }
+
   return (
     <DashboardLayout activeTab={activeTab} onSelectTab={setActiveTab}>
-      {renderPage({ navigate: setActiveTab, citas, addCita })}
+      {renderPage({ navigate: setActiveTab, citas, addCita, deleteCita })}
     </DashboardLayout>
   )
 }
