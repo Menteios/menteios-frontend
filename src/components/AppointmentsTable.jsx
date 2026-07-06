@@ -1,21 +1,5 @@
-const THERAPY_STYLES = {
-  'Cognitivo-conductual': 'bg-sky-50 text-sky-600',
-  'Terapia breve': 'bg-amber-50 text-amber-600',
-  Psicoanálisis: 'bg-violet-50 text-violet-600',
-  Gestalt: 'bg-emerald-50 text-emerald-600',
-}
-
-const MONTH_ABBREVIATIONS = [
-  'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
-]
-
-// Appointments arrive with ISO dates (e.g. '2026-06-09') since that's what an
-// API/DB would return; formatting for display is this component's job.
-function formatFecha(isoDate) {
-  const [year, month, day] = isoDate.split('-')
-  return `${day} ${MONTH_ABBREVIATIONS[Number(month) - 1]} ${year}`
-}
+import { formatFechaCorta } from '../utils/date'
+import { THERAPY_STYLES } from '../utils/therapyStyles'
 
 export default function AppointmentsTable({ appointments }) {
   return (
@@ -32,7 +16,7 @@ export default function AppointmentsTable({ appointments }) {
         {appointments.map((appointment) => (
           <tr key={appointment.id}>
             <td className="px-4 py-4 font-medium text-gray-800">{appointment.pacienteNombre}</td>
-            <td className="px-4 py-4 text-gray-500">{formatFecha(appointment.fecha)}</td>
+            <td className="px-4 py-4 text-gray-500">{formatFechaCorta(appointment.fecha)}</td>
             <td className="px-4 py-4 text-gray-500">${appointment.monto}</td>
             <td className="px-4 py-4">
               <span

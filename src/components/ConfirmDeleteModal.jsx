@@ -1,15 +1,12 @@
 import Modal from './Modal'
 
-export default function ConfirmDeleteCitaModal({ open, cita, onCancel, onConfirm }) {
-  if (!open || !cita) return null
+export default function ConfirmDeleteModal({ open, title, message, confirmLabel = 'Eliminar', onCancel, onConfirm }) {
+  if (!open) return null
 
   return (
     <Modal open={open} onClose={onCancel} maxWidth="max-w-sm">
-      <h2 className="text-lg font-semibold text-gray-900">Cancelar cita</h2>
-      <p className="mt-3 text-sm text-gray-600">
-        ¿Estás seguro de que deseas cancelar la cita de{' '}
-        <span className="font-semibold text-gray-900">{cita.pacienteNombre}</span>?
-      </p>
+      <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+      <p className="mt-3 text-sm text-gray-600">{message}</p>
 
       <div className="mt-6 flex justify-end gap-3">
         <button
@@ -21,10 +18,10 @@ export default function ConfirmDeleteCitaModal({ open, cita, onCancel, onConfirm
         </button>
         <button
           type="button"
-          onClick={() => onConfirm(cita)}
+          onClick={onConfirm}
           className="rounded-xl bg-red-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-red-700"
         >
-          Eliminar
+          {confirmLabel}
         </button>
       </div>
     </Modal>

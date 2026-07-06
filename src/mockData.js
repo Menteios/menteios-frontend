@@ -18,6 +18,7 @@ export const pacientes = [
     areaTrabajar: 'Manejo del estrés y regulación emocional',
     planesEjecucion: '12 sesiones - Técnicas cognitivo-conductuales',
     estado: 'Activo',
+    costoCita: 800,
   },
   {
     id: 2,
@@ -27,6 +28,7 @@ export const pacientes = [
     areaTrabajar: 'Autoestima y habilidades sociales',
     planesEjecucion: '8 sesiones - Activación conductual',
     estado: 'Activo',
+    costoCita: 650,
   },
   {
     id: 3,
@@ -36,6 +38,7 @@ export const pacientes = [
     areaTrabajar: 'Exposición gradual y desensibilización',
     planesEjecucion: '10 sesiones - Terapia de exposición',
     estado: 'Activo',
+    costoCita: 800,
   },
   {
     id: 4,
@@ -45,9 +48,15 @@ export const pacientes = [
     areaTrabajar: 'Regulación emocional y manejo del estrés',
     planesEjecucion: '15 sesiones - EMDR',
     estado: 'Activo',
+    costoCita: 700,
   },
 ]
 
+// `estadoSesion`, `duracion` y `notasClinicas` son opcionales por diseño:
+// una cita recién agendada (ej. desde CitaFormModal) no los trae todavía.
+// Se completan cuando la sesión ocurre y el profesional guarda su nota
+// (ver handleSaveNotaBorrador/handleCompletarSesion en src/App.jsx).
+// `monto` se hereda por defecto del `costoCita` del paciente al agendar.
 export const citas = [
   {
     id: 1,
@@ -57,6 +66,9 @@ export const citas = [
     hora: '10:00',
     monto: 800,
     tipoTerapia: 'Cognitivo-conductual',
+    estadoSesion: 'Completada',
+    duracion: '50 min',
+    notasClinicas: 'Avance en técnicas de respiración. Tarea: diario de pensamientos.',
   },
   {
     id: 2,
@@ -66,6 +78,9 @@ export const citas = [
     hora: '12:00',
     monto: 650,
     tipoTerapia: 'Terapia breve',
+    estadoSesion: 'Completada',
+    duracion: '50 min',
+    notasClinicas: 'Identificación de patrones de evitación social.',
   },
   {
     id: 3,
@@ -75,6 +90,9 @@ export const citas = [
     hora: '09:30',
     monto: 800,
     tipoTerapia: 'Psicoanálisis',
+    estadoSesion: 'Pendiente',
+    duracion: '50 min',
+    notasClinicas: 'Exploración de conflictos inconscientes y su impacto emocional.',
   },
   {
     id: 4,
@@ -84,6 +102,9 @@ export const citas = [
     hora: '11:00',
     monto: 700,
     tipoTerapia: 'Gestalt',
+    estadoSesion: 'Pendiente',
+    duracion: '50 min',
+    notasClinicas: 'Procesamiento de recuerdos traumáticos. Fase de estabilización.',
   },
   {
     id: 5,
@@ -93,6 +114,9 @@ export const citas = [
     hora: '09:00',
     monto: 800,
     tipoTerapia: 'Cognitivo-conductual',
+    estadoSesion: 'Pendiente',
+    duracion: '50 min',
+    notasClinicas: '',
   },
   {
     id: 6,
@@ -102,6 +126,9 @@ export const citas = [
     hora: '11:30',
     monto: 800,
     tipoTerapia: 'Psicoanálisis',
+    estadoSesion: 'Pendiente',
+    duracion: '50 min',
+    notasClinicas: '',
   },
   {
     id: 7,
@@ -111,6 +138,9 @@ export const citas = [
     hora: '10:00',
     monto: 650,
     tipoTerapia: 'Terapia breve',
+    estadoSesion: 'Pendiente',
+    duracion: '50 min',
+    notasClinicas: '',
   },
   {
     id: 8,
@@ -120,6 +150,9 @@ export const citas = [
     hora: '15:00',
     monto: 700,
     tipoTerapia: 'Gestalt',
+    estadoSesion: 'Pendiente',
+    duracion: '50 min',
+    notasClinicas: '',
   },
 ]
 
@@ -128,11 +161,11 @@ export const citas = [
 // píldoras de color consistentes en toda la app.
 export const TIPOS_TERAPIA = ['Cognitivo-conductual', 'Terapia breve', 'Psicoanálisis', 'Gestalt']
 
-// "citasDelDia" ya no vive acá: se calcula en tiempo real filtrando `citas`
-// por HOY (ver src/pages/Home.jsx), para que nunca se desincronice de la
-// fuente de verdad compartida en App.jsx.
+// "citasDelDia", "totalPacientes" y "sesionesEstaSemana" ya no viven acá: se
+// calculan en tiempo real a partir de los arrays `citas`/`pacientes` (ver
+// src/pages/Home.jsx y src/pages/Sesiones.jsx), para que nunca se
+// desincronicen de la fuente de verdad compartida en App.jsx. Solo queda
+// "reportes" porque todavía no existe un array de reportes que contar.
 export const metricasHome = {
-  totalPacientes: 48,
-  sesionesEstaSemana: 124,
   reportes: 15,
 }

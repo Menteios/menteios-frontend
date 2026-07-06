@@ -2,11 +2,11 @@ import { useMemo, useState } from 'react'
 import Calendar from '../components/Calendar'
 import AgendaPanel from '../components/AgendaPanel'
 import CitaFormModal from '../components/CitaFormModal'
-import ConfirmDeleteCitaModal from '../components/ConfirmDeleteCitaModal'
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal'
 import { PlusIcon } from '../components/icons/DashboardIcons'
 import { HOY } from '../mockData'
 
-export default function Citas({ citas, onAddCita, onDeleteCita }) {
+export default function Citas({ citas, pacientes, onAddCita, onDeleteCita }) {
   const [currentYear, setCurrentYear] = useState(2026)
   const [currentMonth, setCurrentMonth] = useState(5) // Junio
   const [selectedDate, setSelectedDate] = useState(HOY)
@@ -48,8 +48,8 @@ export default function Citas({ citas, onAddCita, onDeleteCita }) {
     setShowModal(false)
   }
 
-  function handleConfirmarEliminacion(cita) {
-    onDeleteCita(cita.id)
+  function handleConfirmarEliminacion() {
+    onDeleteCita(citaEnConfirmacion.id)
     setAppointmentToDelete(null)
   }
 
@@ -92,15 +92,24 @@ export default function Citas({ citas, onAddCita, onDeleteCita }) {
       {showModal && (
         <CitaFormModal
           open
+          pacientes={pacientes}
           defaultFecha={selectedDate}
           onClose={() => setShowModal(false)}
           onSubmit={handleNuevaCita}
         />
       )}
 
-      <ConfirmDeleteCitaModal
+      <ConfirmDeleteModal
         open={appointmentToDelete !== null}
-        cita={citaEnConfirmacion}
+        title="Cancelar cita"
+        message={
+          citaEnConfirmacion && (
+            <>
+              ¿Estás seguro de que deseas cancelar la cita de{' '}
+              <span className="font-semibold text-gray-900">{citaEnConfirmacion.pacienteNombre}</span>?
+            </>
+          )
+        }
         onCancel={() => setAppointmentToDelete(null)}
         onConfirm={handleConfirmarEliminacion}
       />

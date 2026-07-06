@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Modal from './Modal'
-import { XIcon } from './icons/DashboardIcons'
-import { pacientes, TIPOS_TERAPIA } from '../mockData'
+import { XIcon, MoneyIcon } from './icons/DashboardIcons'
+import { TIPOS_TERAPIA } from '../mockData'
 
 const INPUT_CLASSES =
   'w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-brand-500'
@@ -9,14 +9,23 @@ const INPUT_CLASSES =
 const OTRO_TERAPIA = 'Otro (Especificar...)'
 const OPCIONES_TERAPIA = [...TIPOS_TERAPIA, OTRO_TERAPIA]
 
-export default function CitaFormModal({ open, defaultFecha, onClose, onSubmit }) {
-  const [form, setForm] = useState(() => ({
-    pacienteId: pacientes[0]?.id ?? '',
-    fecha: defaultFecha,
-    hora: '',
-    tipoTerapia: TIPOS_TERAPIA[0],
-    tipoTerapiaOtro: '',
-  }))
+// `pacientes` llega por props (estado vivo de App.jsx), nunca importado
+// directo de mockData.js: si un paciente se elimina en cascada, este
+// selector no debe seguir ofreciéndolo para agendar citas nuevas.
+export default function CitaFormModal({ open, pacientes, defaultFecha, onClose, onSubmit }) {
+  const [form, setForm] = useState(() => {
+    const pacienteInicial = pacientes[0]
+    return {
+      pacienteId: pacienteInicial?.id ?? '',
+      fecha: defaultFecha,
+      hora: '',
+      tipoTerapia: TIPOS_TERAPIA[0],
+      tipoTerapiaOtro: '',
+      // El monto hereda por defecto el costoCita del paciente seleccionado;
+      // queda editable por si esa sesión puntual tiene un valor distinto.
+      monto: pacienteInicial?.costoCita != null ? String(pacienteInicial.costoCita) : '',
+    }
+  })
 
   if (!open) return null
 
@@ -24,6 +33,16 @@ export default function CitaFormModal({ open, defaultFecha, onClose, onSubmit })
 
   function handleChange(field) {
     return (event) => setForm((prev) => ({ ...prev, [field]: event.target.value }))
+  }
+
+  function handlePacienteChange(event) {
+    const pacienteId = event.target.value
+    const paciente = pacientes.find((p) => p.id === Number(pacienteId))
+    setForm((prev) => ({
+      ...prev,
+      pacienteId,
+      monto: paciente?.costoCita != null ? String(paciente.costoCita) : prev.monto,
+    }))
   }
 
   function handleSubmit(event) {
@@ -37,6 +56,7 @@ export default function CitaFormModal({ open, defaultFecha, onClose, onSubmit })
       fecha: form.fecha,
       hora: form.hora,
       tipoTerapia: tipoTerapiaFinal,
+      monto: Number(form.monto),
     })
   }
 
@@ -59,7 +79,7 @@ export default function CitaFormModal({ open, defaultFecha, onClose, onSubmit })
           <select
             required
             value={form.pacienteId}
-            onChange={handleChange('pacienteId')}
+            onChange={handlePacienteChange}
             className={INPUT_CLASSES}
           >
             {pacientes.map((paciente) => (
@@ -68,6 +88,21 @@ export default function CitaFormModal({ open, defaultFecha, onClose, onSubmit })
               </option>
             ))}
           </select>
+        </Field>
+
+        <Field label="Monto">
+          <div className="relative">
+            <MoneyIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              required
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.monto}
+              onChange={handleChange('monto')}
+              className={`${INPUT_CLASSES} pl-11`}
+            />
+          </div>
         </Field>
 
         <Field label="Fecha">
