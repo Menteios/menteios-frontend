@@ -1,5 +1,5 @@
 import { MESES } from '../utils/date'
-import { TrashIcon } from './icons/DashboardIcons'
+import { TrashIcon, WhatsAppIcon } from './icons/DashboardIcons'
 
 export default function AgendaPanel({ selectedDate, citasDelDia, onDeleteCita }) {
   const [, month, day] = selectedDate.split('-').map(Number)
@@ -21,14 +21,24 @@ export default function AgendaPanel({ selectedDate, citasDelDia, onDeleteCita })
               <span>
                 {cita.pacienteNombre} - {cita.hora}
               </span>
-              <button
-                type="button"
-                onClick={() => onDeleteCita(cita)}
-                aria-label={`Cancelar cita de ${cita.pacienteNombre}`}
-                className="text-red-400 opacity-0 transition group-hover:opacity-100 hover:text-red-600"
-              >
-                <TrashIcon className="h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-2 opacity-0 transition group-hover:opacity-100">
+                <button
+                  type="button"
+                  onClick={() => window.open(`https://wa.me/${cita.telefono}`, '_blank')}
+                  aria-label={`Enviar WhatsApp a ${cita.pacienteNombre}`}
+                  className="text-green-500 hover:text-green-600"
+                >
+                  <WhatsAppIcon className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDeleteCita(cita)}
+                  aria-label={`Cancelar cita de ${cita.pacienteNombre}`}
+                  className="text-red-400 hover:text-red-600"
+                >
+                  <TrashIcon className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           ))
         )}

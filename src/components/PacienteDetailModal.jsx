@@ -18,6 +18,7 @@ export default function PacienteDetailModal({ open, paciente, onClose }) {
         <DetailRow label="Diagnóstico" value={paciente.diagnostico} />
         <DetailRow label="Área a trabajar" value={paciente.areaTrabajar} />
         <DetailRow label="Plan de ejecución" value={paciente.planesEjecucion} />
+        <DetailRow label="Teléfono" value={paciente.telefono} />
       </dl>
 
       <div className="mt-8 flex justify-end">

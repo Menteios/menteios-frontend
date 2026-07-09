@@ -18,6 +18,7 @@ export const pacientes = [
     areaTrabajar: 'Manejo del estrés y regulación emocional',
     planesEjecucion: '12 sesiones - Técnicas cognitivo-conductuales',
     estado: 'Activo',
+    telefono: '9991539004'
   },
   {
     id: 2,
@@ -27,6 +28,7 @@ export const pacientes = [
     areaTrabajar: 'Autoestima y habilidades sociales',
     planesEjecucion: '8 sesiones - Activación conductual',
     estado: 'Activo',
+    telefono: '9991539004'
   },
   {
     id: 3,
@@ -36,6 +38,7 @@ export const pacientes = [
     areaTrabajar: 'Exposición gradual y desensibilización',
     planesEjecucion: '10 sesiones - Terapia de exposición',
     estado: 'Activo',
+    telefono: '9991539004'
   },
   {
     id: 4,
@@ -45,6 +48,7 @@ export const pacientes = [
     areaTrabajar: 'Regulación emocional y manejo del estrés',
     planesEjecucion: '15 sesiones - EMDR',
     estado: 'Activo',
+    telefono: '9991539004'
   },
 ]
 
@@ -57,6 +61,7 @@ export const citas = [
     hora: '10:00',
     monto: 800,
     tipoTerapia: 'Cognitivo-conductual',
+    telefono: '9991539004'
   },
   {
     id: 2,
@@ -66,6 +71,7 @@ export const citas = [
     hora: '12:00',
     monto: 650,
     tipoTerapia: 'Terapia breve',
+    telefono: '9991539004'
   },
   {
     id: 3,
@@ -75,6 +81,7 @@ export const citas = [
     hora: '09:30',
     monto: 800,
     tipoTerapia: 'Psicoanálisis',
+    telefono: '9991539004'
   },
   {
     id: 4,
@@ -84,6 +91,7 @@ export const citas = [
     hora: '11:00',
     monto: 700,
     tipoTerapia: 'Gestalt',
+    telefono: '9991539004'
   },
   {
     id: 5,
@@ -93,6 +101,7 @@ export const citas = [
     hora: '09:00',
     monto: 800,
     tipoTerapia: 'Cognitivo-conductual',
+    telefono: '9991539004'
   },
   {
     id: 6,
@@ -102,6 +111,7 @@ export const citas = [
     hora: '11:30',
     monto: 800,
     tipoTerapia: 'Psicoanálisis',
+    telefono: '9991539004'
   },
   {
     id: 7,
@@ -111,6 +121,7 @@ export const citas = [
     hora: '10:00',
     monto: 650,
     tipoTerapia: 'Terapia breve',
+    telefono: '9991539004'
   },
   {
     id: 8,
@@ -120,6 +131,7 @@ export const citas = [
     hora: '15:00',
     monto: 700,
     tipoTerapia: 'Gestalt',
+    telefono: '9991539004'
   },
 ]
 
