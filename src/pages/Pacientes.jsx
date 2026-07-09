@@ -136,6 +136,10 @@ function PacienteCard({ paciente, onEdit, onView }) {
           {paciente.areaTrabajar}
         </p>
         <p className="text-gray-700">
+          <span className="text-brand-600">Teléfono: </span>
+          {paciente.telefono}
+        </p>
+        <p className="text-gray-700">
           <span className="text-brand-600">Planes de ejecución: </span>
           {paciente.planesEjecucion}
         </p>
