@@ -57,6 +57,7 @@ export default function CitaFormModal({ open, pacientes, defaultFecha, onClose, 
       hora: form.hora,
       tipoTerapia: tipoTerapiaFinal,
       monto: Number(form.monto),
+      telefono: paciente.telefono,
     })
   }
 

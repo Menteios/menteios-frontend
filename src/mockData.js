@@ -18,6 +18,7 @@ export const pacientes = [
     areaTrabajar: 'Manejo del estrés y regulación emocional',
     planesEjecucion: '12 sesiones - Técnicas cognitivo-conductuales',
     estado: 'Activo',
+    telefono: '9991539004',
     costoCita: 800,
   },
   {
@@ -28,6 +29,7 @@ export const pacientes = [
     areaTrabajar: 'Autoestima y habilidades sociales',
     planesEjecucion: '8 sesiones - Activación conductual',
     estado: 'Activo',
+    telefono: '9991539004',
     costoCita: 650,
   },
   {
@@ -38,6 +40,7 @@ export const pacientes = [
     areaTrabajar: 'Exposición gradual y desensibilización',
     planesEjecucion: '10 sesiones - Terapia de exposición',
     estado: 'Activo',
+    telefono: '9991539004',
     costoCita: 800,
   },
   {
@@ -48,6 +51,7 @@ export const pacientes = [
     areaTrabajar: 'Regulación emocional y manejo del estrés',
     planesEjecucion: '15 sesiones - EMDR',
     estado: 'Activo',
+    telefono: '9991539004',
     costoCita: 700,
   },
 ]
@@ -57,6 +61,7 @@ export const pacientes = [
 // Se completan cuando la sesión ocurre y el profesional guarda su nota
 // (ver handleSaveNotaBorrador/handleCompletarSesion en src/App.jsx).
 // `monto` se hereda por defecto del `costoCita` del paciente al agendar.
+// `telefono` alimenta el botón de WhatsApp de la agenda (AgendaPanel.jsx).
 export const citas = [
   {
     id: 1,
@@ -66,6 +71,7 @@ export const citas = [
     hora: '10:00',
     monto: 800,
     tipoTerapia: 'Cognitivo-conductual',
+    telefono: '9991539004',
     estadoSesion: 'Completada',
     duracion: '50 min',
     notasClinicas: 'Avance en técnicas de respiración. Tarea: diario de pensamientos.',
@@ -78,6 +84,7 @@ export const citas = [
     hora: '12:00',
     monto: 650,
     tipoTerapia: 'Terapia breve',
+    telefono: '9991539004',
     estadoSesion: 'Completada',
     duracion: '50 min',
     notasClinicas: 'Identificación de patrones de evitación social.',
@@ -90,6 +97,7 @@ export const citas = [
     hora: '09:30',
     monto: 800,
     tipoTerapia: 'Psicoanálisis',
+    telefono: '9991539004',
     estadoSesion: 'Pendiente',
     duracion: '50 min',
     notasClinicas: 'Exploración de conflictos inconscientes y su impacto emocional.',
@@ -102,6 +110,7 @@ export const citas = [
     hora: '11:00',
     monto: 700,
     tipoTerapia: 'Gestalt',
+    telefono: '9991539004',
     estadoSesion: 'Pendiente',
     duracion: '50 min',
     notasClinicas: 'Procesamiento de recuerdos traumáticos. Fase de estabilización.',
@@ -114,6 +123,7 @@ export const citas = [
     hora: '09:00',
     monto: 800,
     tipoTerapia: 'Cognitivo-conductual',
+    telefono: '9991539004',
     estadoSesion: 'Pendiente',
     duracion: '50 min',
     notasClinicas: '',
@@ -126,6 +136,7 @@ export const citas = [
     hora: '11:30',
     monto: 800,
     tipoTerapia: 'Psicoanálisis',
+    telefono: '9991539004',
     estadoSesion: 'Pendiente',
     duracion: '50 min',
     notasClinicas: '',
@@ -138,6 +149,7 @@ export const citas = [
     hora: '10:00',
     monto: 650,
     tipoTerapia: 'Terapia breve',
+    telefono: '9991539004',
     estadoSesion: 'Pendiente',
     duracion: '50 min',
     notasClinicas: '',
@@ -150,6 +162,7 @@ export const citas = [
     hora: '15:00',
     monto: 700,
     tipoTerapia: 'Gestalt',
+    telefono: '9991539004',
     estadoSesion: 'Pendiente',
     duracion: '50 min',
     notasClinicas: '',
