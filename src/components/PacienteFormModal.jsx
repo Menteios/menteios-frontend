@@ -12,6 +12,7 @@ export default function PacienteFormModal({ open, mode, initialValues, onClose, 
     diagnostico: initialValues?.diagnostico ?? '',
     areaTrabajar: initialValues?.areaTrabajar ?? '',
     planesEjecucion: initialValues?.planesEjecucion ?? '',
+    telefono: initialValues?.telefono ?? '',
     costoCita: initialValues?.costoCita != null ? String(initialValues.costoCita) : '',
   }))
 
@@ -61,6 +62,17 @@ export default function PacienteFormModal({ open, mode, initialValues, onClose, 
             min="0"
             value={form.edad}
             onChange={handleChange('edad')}
+            className={INPUT_CLASSES}
+          />
+        </Field>
+
+        <Field label="Teléfono">
+          <input
+            required
+            type="tel"
+            maxLength="10"
+            value={form.telefono}
+            onChange={handleChange('telefono')}
             className={INPUT_CLASSES}
           />
         </Field>
