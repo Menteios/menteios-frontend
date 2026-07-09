@@ -24,6 +24,14 @@ export default function PacienteFormModal({ open, mode, initialValues, onClose, 
     return (event) => setForm((prev) => ({ ...prev, [field]: event.target.value }))
   }
 
+  // El nombre solo admite letras (con acentos/ñ) y espacios — se filtra
+  // cualquier número o símbolo apenas se escribe, en vez de solo validar
+  // al enviar el formulario.
+  function handleChangeNombre(event) {
+    const soloLetras = event.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '')
+    setForm((prev) => ({ ...prev, nombre: soloLetras }))
+  }
+
   function handleSubmit(event) {
     event.preventDefault()
     onSubmit({ ...form, edad: Number(form.edad), costoCita: Number(form.costoCita) })
@@ -50,7 +58,9 @@ export default function PacienteFormModal({ open, mode, initialValues, onClose, 
           <input
             required
             value={form.nombre}
-            onChange={handleChange('nombre')}
+            onChange={handleChangeNombre}
+            pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+"
+            title="Solo se permiten letras"
             className={INPUT_CLASSES}
           />
         </Field>
