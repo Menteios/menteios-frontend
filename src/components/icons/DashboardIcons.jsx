@@ -301,3 +301,63 @@ export function TrashIcon({ className = 'h-4 w-4' }) {
     </svg>
   )
 }
+
+export function DownloadIcon({ className = 'h-5 w-5' }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M12 3v12" />
+      <path d="m7 10 5 5 5-5" />
+      <path d="M5 21h14" />
+    </svg>
+  )
+}
+
+// Íconos genéricos de documento (no son los logotipos oficiales de
+// Microsoft Word / Adobe Acrobat, que son marcas registradas). Se
+// distinguen por color y una marca tipográfica simple dentro del mismo
+// contorno de documento.
+export function WordFileIcon({ className = 'h-5 w-5' }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className}>
+      <path
+        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M14 2v6h6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <text x="12" y="18" textAnchor="middle" fontSize="7" fontWeight="700" fill="currentColor">
+        W
+      </text>
+    </svg>
+  )
+}
+
+export function PdfFileIcon({ className = 'h-5 w-5' }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className}>
+      <path
+        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M14 2v6h6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <text x="12" y="17.5" textAnchor="middle" fontSize="6" fontWeight="700" fill="currentColor">
+        PDF
+      </text>
+    </svg>
+  )
+}
