@@ -4,7 +4,7 @@ import Home from './pages/Home'
 import Pacientes from './pages/Pacientes'
 import Citas from './pages/Citas'
 import Sesiones from './pages/Sesiones'
-import ComingSoon from './pages/ComingSoon'
+import Reportes from './pages/Reportes'
 import { citas as citasIniciales, pacientes as pacientesIniciales } from './mockData'
 
 // 'inicio' es la pantalla de entrada (Resumen general) y corresponde al
@@ -43,7 +43,7 @@ const PAGE_RENDERERS = {
       onDeleteSesion={ctx.handleDeleteSesion}
     />
   ),
-  reportes: () => <ComingSoon title="Reportes" />,
+  reportes: () => <Reportes />,
 }
 
 function App() {
