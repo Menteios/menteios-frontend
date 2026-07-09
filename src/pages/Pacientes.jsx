@@ -1,22 +1,22 @@
 import { useState } from 'react'
-import { SearchIcon, PlusIcon, PencilIcon, EyeIcon } from '../components/icons/DashboardIcons'
+import { SearchIcon, PlusIcon, PencilIcon, EyeIcon, TrashIcon } from '../components/icons/DashboardIcons'
 import Toast from '../components/Toast'
 import PacienteFormModal from '../components/PacienteFormModal'
 import PacienteDetailModal from '../components/PacienteDetailModal'
-import { pacientes as pacientesIniciales } from '../mockData'
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal'
 
 const ESTADO_STYLES = {
   Activo: 'bg-emerald-50 text-emerald-600',
   Inactivo: 'bg-gray-100 text-gray-500',
 }
 
-export default function Pacientes() {
-  const [pacientes, setPacientes] = useState(pacientesIniciales)
+export default function Pacientes({ pacientes, onAddPaciente, onUpdatePaciente, onDeletePaciente }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [showToast, setShowToast] = useState(false)
   // null | { mode: 'create' } | { mode: 'edit', pacienteId }
   const [formModal, setFormModal] = useState(null)
   const [detailPacienteId, setDetailPacienteId] = useState(null)
+  const [pacienteToDelete, setPacienteToDelete] = useState(null)
 
   const pacientesFiltrados = pacientes.filter((paciente) =>
     paciente.nombre.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -26,6 +26,7 @@ export default function Pacientes() {
     formModal?.mode === 'edit' ? pacientes.find((p) => p.id === formModal.pacienteId) : null
 
   const pacienteEnDetalle = pacientes.find((p) => p.id === detailPacienteId) ?? null
+  const pacienteEnConfirmacion = pacientes.find((p) => p.id === pacienteToDelete) ?? null
 
   function notificarGuardado() {
     setShowToast(true)
@@ -33,17 +34,20 @@ export default function Pacientes() {
   }
 
   function handleCrearPaciente(datos) {
-    setPacientes((prev) => [...prev, { id: Date.now(), estado: 'Activo', ...datos }])
+    onAddPaciente(datos)
     setFormModal(null)
     notificarGuardado()
   }
 
   function handleActualizarPaciente(datos) {
-    setPacientes((prev) =>
-      prev.map((p) => (p.id === formModal.pacienteId ? { ...p, ...datos } : p)),
-    )
+    onUpdatePaciente(formModal.pacienteId, datos)
     setFormModal(null)
     notificarGuardado()
+  }
+
+  function handleConfirmarEliminacion() {
+    onDeletePaciente(pacienteEnConfirmacion.id)
+    setPacienteToDelete(null)
   }
 
   return (
@@ -79,6 +83,7 @@ export default function Pacientes() {
             paciente={paciente}
             onEdit={() => setFormModal({ mode: 'edit', pacienteId: paciente.id })}
             onView={() => setDetailPacienteId(paciente.id)}
+            onDelete={() => setPacienteToDelete(paciente.id)}
           />
         ))}
 
@@ -106,6 +111,22 @@ export default function Pacientes() {
         onClose={() => setDetailPacienteId(null)}
       />
 
+      <ConfirmDeleteModal
+        open={pacienteToDelete !== null}
+        title="Eliminar paciente"
+        message={
+          pacienteEnConfirmacion && (
+            <>
+              ¿Estás seguro de que deseas eliminar a{' '}
+              <span className="font-semibold text-gray-900">{pacienteEnConfirmacion.nombre}</span>? Esto
+              también eliminará todas sus citas y sesiones registradas en toda la app.
+            </>
+          )
+        }
+        onCancel={() => setPacienteToDelete(null)}
+        onConfirm={handleConfirmarEliminacion}
+      />
+
       <Toast
         show={showToast}
         message="Paciente guardado correctamente"
@@ -115,7 +136,7 @@ export default function Pacientes() {
   )
 }
 
-function PacienteCard({ paciente, onEdit, onView }) {
+function PacienteCard({ paciente, onEdit, onView, onDelete }) {
   return (
     <article className="flex items-center justify-between gap-6 rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm">
       <div className="grid flex-1 grid-cols-2 gap-x-10 gap-y-2 text-sm">
@@ -166,6 +187,14 @@ function PacienteCard({ paciente, onEdit, onView }) {
           className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-brand-300 hover:text-brand-600"
         >
           <EyeIcon className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onDelete}
+          aria-label={`Eliminar a ${paciente.nombre}`}
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-300 hover:text-red-600"
+        >
+          <TrashIcon className="h-4 w-4" />
         </button>
       </div>
     </article>

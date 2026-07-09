@@ -1,12 +1,15 @@
 import { useMemo } from 'react'
 import SummaryCard from '../components/SummaryCard'
 import AppointmentsTable from '../components/AppointmentsTable'
+import RevenueSummary from '../components/RevenueSummary'
 import { UsersIcon, CalendarIcon, SessionsIcon, ReportsIcon } from '../components/icons/DashboardIcons'
+import { getWeekRange } from '../utils/date'
 import { HOY, metricasHome } from '../mockData'
 
-// Presentation metadata para cada tarjeta de resumen. `value` puede ser un
-// número fijo de `metricasHome` o una función que la calcula en tiempo real
-// a partir del estado compartido (ej. citasDelDia via .filter()).
+// Presentation metadata para cada tarjeta de resumen. `getValue` recibe el
+// estado unificado ({ citas, pacientes }) y calcula el número en tiempo
+// real — la misma lógica matemática que usan las tarjetas de Sesiones, así
+// que ambas pantallas nunca pueden mostrar cifras distintas.
 const METRIC_CARDS_CONFIG = [
   {
     key: 'totalPacientes',
@@ -15,7 +18,7 @@ const METRIC_CARDS_CONFIG = [
     badgeTone: 'green',
     icon: UsersIcon,
     targetTab: 'pacientes',
-    getValue: () => metricasHome.totalPacientes,
+    getValue: ({ pacientes }) => pacientes.length,
   },
   {
     key: 'citasDelDia',
@@ -24,16 +27,19 @@ const METRIC_CARDS_CONFIG = [
     badgeTone: 'blue',
     icon: CalendarIcon,
     targetTab: 'citas',
-    getValue: (citas) => citas.filter((cita) => cita.fecha === HOY).length,
+    getValue: ({ citas }) => citas.filter((cita) => cita.fecha === HOY).length,
   },
   {
     key: 'sesionesEstaSemana',
     label: 'Sesiones',
-    badge: '+12 esta semana',
+    badge: 'Esta semana',
     badgeTone: 'green',
     icon: SessionsIcon,
     targetTab: 'sesiones',
-    getValue: () => metricasHome.sesionesEstaSemana,
+    getValue: ({ citas }) => {
+      const { start, end } = getWeekRange(HOY)
+      return citas.filter((cita) => cita.fecha >= start && cita.fecha <= end).length
+    },
   },
   {
     key: 'reportes',
@@ -53,7 +59,7 @@ function ordenarPorFechaYHora(citas) {
   })
 }
 
-export default function Home({ onNavigate, citas }) {
+export default function Home({ onNavigate, citas, pacientes }) {
   const citasOrdenadas = useMemo(() => ordenarPorFechaYHora(citas), [citas])
 
   return (
@@ -64,12 +70,14 @@ export default function Home({ onNavigate, citas }) {
         {METRIC_CARDS_CONFIG.map(({ key, targetTab, getValue, ...config }) => (
           <SummaryCard
             key={key}
-            value={getValue(citas)}
+            value={getValue({ citas, pacientes })}
             onClick={() => onNavigate(targetTab)}
             {...config}
           />
         ))}
       </section>
+
+      <RevenueSummary citas={citas} />
 
       <section className="mt-8 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900">Próximas citas</h2>

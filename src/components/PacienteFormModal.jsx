@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Modal from './Modal'
-import { XIcon } from './icons/DashboardIcons'
+import { XIcon, MoneyIcon } from './icons/DashboardIcons'
 
 const INPUT_CLASSES =
   'w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-brand-500'
@@ -12,7 +12,8 @@ export default function PacienteFormModal({ open, mode, initialValues, onClose, 
     diagnostico: initialValues?.diagnostico ?? '',
     areaTrabajar: initialValues?.areaTrabajar ?? '',
     planesEjecucion: initialValues?.planesEjecucion ?? '',
-    telefono: initialValues?.telefono ?? ''
+    telefono: initialValues?.telefono ?? '',
+    costoCita: initialValues?.costoCita != null ? String(initialValues.costoCita) : '',
   }))
 
   if (!open) return null
@@ -25,7 +26,7 @@ export default function PacienteFormModal({ open, mode, initialValues, onClose, 
 
   function handleSubmit(event) {
     event.preventDefault()
-    onSubmit({ ...form, edad: Number(form.edad) })
+    onSubmit({ ...form, edad: Number(form.edad), costoCita: Number(form.costoCita) })
   }
 
   return (
@@ -102,6 +103,22 @@ export default function PacienteFormModal({ open, mode, initialValues, onClose, 
             placeholder="ej: 12 sesiones - Técnicas cognitivo-conductuales"
             className={INPUT_CLASSES}
           />
+        </Field>
+
+        <Field label="Costo de cita">
+          <div className="relative">
+            <MoneyIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              required
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.costoCita}
+              onChange={handleChange('costoCita')}
+              placeholder="800"
+              className={`${INPUT_CLASSES} pl-11`}
+            />
+          </div>
         </Field>
 
         <div className="mt-2 flex justify-end gap-3">
