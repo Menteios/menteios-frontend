@@ -62,10 +62,10 @@ export default function Reportes() {
     const respuesta = await window.menteiosAPI.downloadWord(datosActuales)
     if (respuesta.success) {
       console.log(`Word (id ${id}) guardado en:`, respuesta.filePath)
-      mostrarToast('Documento Word guardado correctamente')
+      mostrarToast('Documento Word generado y abierto')
     } else if (!respuesta.canceled) {
       console.error(`Word (id ${id}) falló:`, respuesta.error)
-      mostrarToast('No se pudo guardar el documento Word')
+      mostrarToast('No se pudo generar el documento Word')
     }
   }
 
@@ -77,10 +77,10 @@ export default function Reportes() {
     const respuesta = await window.menteiosAPI.downloadPdf(datosActuales)
     if (respuesta.success) {
       console.log(`PDF (id ${id}) guardado en:`, respuesta.filePath)
-      mostrarToast('Documento PDF guardado correctamente')
+      mostrarToast('Documento PDF generado y abierto')
     } else if (!respuesta.canceled) {
       console.error(`PDF (id ${id}) falló:`, respuesta.error)
-      mostrarToast('No se pudo guardar el documento PDF')
+      mostrarToast('No se pudo generar el documento PDF')
     }
   }
 

@@ -42,35 +42,41 @@ function createWindow() {
   }
 }
 
+// Nombre de archivo "de sistema": espacios a guion bajo para que el
+// resultado (ej. "Hoja_de_seguimiento.docx") sea prolijo tanto en
+// Descargas como en la carpeta que el usuario elija para la exportación
+// en lote.
 function nombreDeArchivo(machoteData, extension) {
-  const base = (machoteData?.nombreArchivo || 'documento').trim()
+  const base = (machoteData?.nombreArchivo || 'documento').trim().replace(/\s+/g, '_')
   return `${base}.${extension}`
 }
 
 // --- Handlers de IPC para Reportes (machotes clínicos) --------------------
 // Cada uno devuelve un objeto { success, ... } — nunca un string/null
-// suelto — para que el renderer distinga con claridad tres casos:
-// éxito, cancelado por el usuario, y error real. La generación del
-// contenido (docx/pdfkit) vive en documentGenerator.js; acá solo se
-// coordina el diálogo nativo, la escritura a disco y el manejo de errores.
+// suelto — para que el renderer distinga con claridad éxito de error
+// real. La generación del contenido (docx/pdfkit) vive en
+// documentGenerator.js; acá solo se coordina la escritura a disco, la
+// apertura automática y el manejo de errores.
+//
+// Word y PDF ya no preguntan dónde guardar: se generan directo en
+// Descargas (app.getPath('downloads')) — a diferencia de os.tmpdir(),
+// esa carpeta persiste después de cerrar la app, así el usuario puede
+// volver a encontrar el archivo aunque ya se haya abierto en Word/
+// Vista Previa. Después de escribir el archivo, shell.openPath lo abre
+// con la aplicación que macOS tenga asociada, para edición inmediata.
 async function handleDownloadWord(_event, machoteData) {
   try {
-    const result = await dialog.showSaveDialog({
-      title: 'Guardar documento Word',
-      defaultPath: nombreDeArchivo(machoteData, 'docx'),
-      filters: [{ name: 'Documento Word', extensions: ['docx'] }],
-    })
+    const filePath = path.join(app.getPath('downloads'), nombreDeArchivo(machoteData, 'docx'))
+    const buffer = await generateWordBuffer(machoteData)
+    fs.writeFileSync(filePath, buffer)
 
-    if (result.canceled || !result.filePath) {
-      console.log('[menteios:download-word] Cancelado por el usuario.')
-      return { success: false, canceled: true }
+    const errorAlAbrir = await shell.openPath(filePath)
+    if (errorAlAbrir) {
+      console.warn('[menteios:download-word] Documento generado pero no se pudo abrir automáticamente:', errorAlAbrir)
     }
 
-    const buffer = await generateWordBuffer(machoteData)
-    fs.writeFileSync(result.filePath, buffer)
-
-    console.log('[menteios:download-word] Documento generado en:', result.filePath)
-    return { success: true, filePath: result.filePath }
+    console.log('[menteios:download-word] Documento generado en:', filePath)
+    return { success: true, filePath }
   } catch (error) {
     console.error('[menteios:download-word] Error al generar el documento:', error)
     return { success: false, error: error.message }
@@ -79,21 +85,16 @@ async function handleDownloadWord(_event, machoteData) {
 
 async function handleDownloadPdf(_event, machoteData) {
   try {
-    const result = await dialog.showSaveDialog({
-      title: 'Guardar documento PDF',
-      defaultPath: nombreDeArchivo(machoteData, 'pdf'),
-      filters: [{ name: 'Documento PDF', extensions: ['pdf'] }],
-    })
+    const filePath = path.join(app.getPath('downloads'), nombreDeArchivo(machoteData, 'pdf'))
+    await generatePdfFile(machoteData, filePath)
 
-    if (result.canceled || !result.filePath) {
-      console.log('[menteios:download-pdf] Cancelado por el usuario.')
-      return { success: false, canceled: true }
+    const errorAlAbrir = await shell.openPath(filePath)
+    if (errorAlAbrir) {
+      console.warn('[menteios:download-pdf] Documento generado pero no se pudo abrir automáticamente:', errorAlAbrir)
     }
 
-    await generatePdfFile(machoteData, result.filePath)
-
-    console.log('[menteios:download-pdf] Documento generado en:', result.filePath)
-    return { success: true, filePath: result.filePath }
+    console.log('[menteios:download-pdf] Documento generado en:', filePath)
+    return { success: true, filePath }
   } catch (error) {
     console.error('[menteios:download-pdf] Error al generar el documento:', error)
     return { success: false, error: error.message }
