@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { SearchIcon, DownloadIcon, PencilIcon, WordFileIcon, PdfFileIcon } from '../components/icons/DashboardIcons'
+import Toast from '../components/Toast'
 
 // Dataset inicial de machotes/plantillas clínicas oficiales. `useState` (en
 // vez de una const fija) porque este listado eventualmente se cargará y
@@ -31,49 +32,72 @@ const MACHOTES_INICIALES = [
   },
 ]
 
-// Handlers aislados y limpios: reciben siempre el id y los datos ACTUALES
-// (ya con las ediciones del usuario aplicadas) y delegan en
-// `window.menteiosAPI`, expuesto por electron/preload.js vía contextBridge.
-// Esa API llama a electron/main.js por IPC, que abre el diálogo nativo de
-// guardado — el backend recibe exactamente el texto editado por el
-// usuario, no lo que había originalmente en el mock.
-//
-// `window.menteiosAPI` solo existe dentro de Electron; si se corre
-// `npm run dev` en el navegador (sin Electron), se avisa por consola en
-// vez de romper la pantalla.
-async function handleDownloadWord(id, datosActuales) {
-  if (!window.menteiosAPI) {
-    console.warn('menteiosAPI no disponible: corré la app con npm run electron:dev')
-    return
-  }
-  const rutaGuardada = await window.menteiosAPI.downloadWord(datosActuales)
-  if (rutaGuardada) console.log(`Word (id ${id}) guardado en:`, rutaGuardada)
-}
-
-async function handleDownloadPdf(id, datosActuales) {
-  if (!window.menteiosAPI) {
-    console.warn('menteiosAPI no disponible: corré la app con npm run electron:dev')
-    return
-  }
-  const rutaGuardada = await window.menteiosAPI.downloadPdf(datosActuales)
-  if (rutaGuardada) console.log(`PDF (id ${id}) guardado en:`, rutaGuardada)
-}
-
-async function handleBulkExport(arrayDeSeleccionados) {
-  if (!window.menteiosAPI) {
-    console.warn('menteiosAPI no disponible: corré la app con npm run electron:dev')
-    return
-  }
-  const carpetaDestino = await window.menteiosAPI.bulkExport(arrayDeSeleccionados)
-  if (carpetaDestino) console.log('Exportación en lote guardada en:', carpetaDestino)
-}
-
 export default function Reportes() {
   const [machotes, setMachotes] = useState(MACHOTES_INICIALES)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedIds, setSelectedIds] = useState([])
   const [editingId, setEditingId] = useState(null)
   const [borrador, setBorrador] = useState({ nombreArchivo: '', descripcion: '' })
+  const [toast, setToast] = useState({ show: false, message: '' })
+
+  function mostrarToast(message) {
+    setToast({ show: true, message })
+    setTimeout(() => setToast({ show: false, message: '' }), 3000)
+  }
+
+  // Handlers aislados: delegan en `window.menteiosAPI` (expuesto por
+  // electron/preload.js vía contextBridge) y solo traducen la respuesta
+  // estructurada `{ success, canceled, error, ... }` del proceso principal
+  // en feedback visual — la generación real del .docx/.pdf vive del lado
+  // de Electron (electron/documentGenerator.js).
+  //
+  // `window.menteiosAPI` solo existe dentro de Electron; si se corre
+  // `npm run dev` en el navegador (sin Electron), se avisa por consola en
+  // vez de romper la pantalla.
+  async function handleDownloadWord(id, datosActuales) {
+    if (!window.menteiosAPI) {
+      console.warn('menteiosAPI no disponible: corré la app con npm run electron:dev')
+      return
+    }
+    const respuesta = await window.menteiosAPI.downloadWord(datosActuales)
+    if (respuesta.success) {
+      console.log(`Word (id ${id}) guardado en:`, respuesta.filePath)
+      mostrarToast('Documento Word guardado correctamente')
+    } else if (!respuesta.canceled) {
+      console.error(`Word (id ${id}) falló:`, respuesta.error)
+      mostrarToast('No se pudo guardar el documento Word')
+    }
+  }
+
+  async function handleDownloadPdf(id, datosActuales) {
+    if (!window.menteiosAPI) {
+      console.warn('menteiosAPI no disponible: corré la app con npm run electron:dev')
+      return
+    }
+    const respuesta = await window.menteiosAPI.downloadPdf(datosActuales)
+    if (respuesta.success) {
+      console.log(`PDF (id ${id}) guardado en:`, respuesta.filePath)
+      mostrarToast('Documento PDF guardado correctamente')
+    } else if (!respuesta.canceled) {
+      console.error(`PDF (id ${id}) falló:`, respuesta.error)
+      mostrarToast('No se pudo guardar el documento PDF')
+    }
+  }
+
+  async function handleBulkExport(arrayDeSeleccionados) {
+    if (!window.menteiosAPI) {
+      console.warn('menteiosAPI no disponible: corré la app con npm run electron:dev')
+      return
+    }
+    const respuesta = await window.menteiosAPI.bulkExport(arrayDeSeleccionados)
+    if (respuesta.success) {
+      console.log('Exportación en lote guardada en:', respuesta.folderPath)
+      mostrarToast(`${respuesta.count} documento(s) exportado(s) correctamente`)
+    } else if (!respuesta.canceled) {
+      console.error('Exportación en lote falló:', respuesta.error)
+      mostrarToast('No se pudo completar la exportación en lote')
+    }
+  }
 
   const machotesFiltrados = useMemo(() => {
     const texto = searchTerm.trim().toLowerCase()
@@ -183,6 +207,12 @@ export default function Reportes() {
           </tbody>
         </table>
       </section>
+
+      <Toast
+        show={toast.show}
+        message={toast.message}
+        onClose={() => setToast({ show: false, message: '' })}
+      />
     </>
   )
 }
