@@ -32,19 +32,40 @@ const MACHOTES_INICIALES = [
 ]
 
 // Handlers aislados y limpios: reciben siempre el id y los datos ACTUALES
-// (ya con las ediciones del usuario aplicadas), así que el día que se
-// conecte fs/docx/pdfkit o un endpoint real, el backend recibe exactamente
-// el texto editado — solo hay que reemplazar el cuerpo de la función.
-function handleDownloadWord(id, datosActuales) {
-  console.log(`Descargando Word (id ${id}):`, datosActuales)
+// (ya con las ediciones del usuario aplicadas) y delegan en
+// `window.menteiosAPI`, expuesto por electron/preload.js vía contextBridge.
+// Esa API llama a electron/main.js por IPC, que abre el diálogo nativo de
+// guardado — el backend recibe exactamente el texto editado por el
+// usuario, no lo que había originalmente en el mock.
+//
+// `window.menteiosAPI` solo existe dentro de Electron; si se corre
+// `npm run dev` en el navegador (sin Electron), se avisa por consola en
+// vez de romper la pantalla.
+async function handleDownloadWord(id, datosActuales) {
+  if (!window.menteiosAPI) {
+    console.warn('menteiosAPI no disponible: corré la app con npm run electron:dev')
+    return
+  }
+  const rutaGuardada = await window.menteiosAPI.downloadWord(datosActuales)
+  if (rutaGuardada) console.log(`Word (id ${id}) guardado en:`, rutaGuardada)
 }
 
-function handleDownloadPdf(id, datosActuales) {
-  console.log(`Descargando PDF (id ${id}):`, datosActuales)
+async function handleDownloadPdf(id, datosActuales) {
+  if (!window.menteiosAPI) {
+    console.warn('menteiosAPI no disponible: corré la app con npm run electron:dev')
+    return
+  }
+  const rutaGuardada = await window.menteiosAPI.downloadPdf(datosActuales)
+  if (rutaGuardada) console.log(`PDF (id ${id}) guardado en:`, rutaGuardada)
 }
 
-function handleBulkExport(arrayDeSeleccionados) {
-  console.log('Exportando en lote:', arrayDeSeleccionados)
+async function handleBulkExport(arrayDeSeleccionados) {
+  if (!window.menteiosAPI) {
+    console.warn('menteiosAPI no disponible: corré la app con npm run electron:dev')
+    return
+  }
+  const carpetaDestino = await window.menteiosAPI.bulkExport(arrayDeSeleccionados)
+  if (carpetaDestino) console.log('Exportación en lote guardada en:', carpetaDestino)
 }
 
 export default function Reportes() {
