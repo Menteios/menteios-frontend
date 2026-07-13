@@ -3,6 +3,15 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { generateWordBuffer, generatePdfFile } from './documentGenerator.js'
+import {
+  initDatabase,
+  getPacientes,
+  addPaciente,
+  deletePaciente,
+  getCitas,
+  addCita,
+  deleteCita,
+} from './database.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -133,12 +142,82 @@ async function handleBulkExport(_event, arrayMachotes) {
   }
 }
 
+// --- Handlers de IPC para Pacientes (persistencia real en SQLite) ---------
+// Mismo formato de respuesta { success, ... } que el resto de canales: el
+// renderer siempre distingue éxito real de error, nunca recibe un throw
+// crudo por IPC.
+async function handleGetPacientes() {
+  try {
+    return { success: true, pacientes: getPacientes() }
+  } catch (error) {
+    console.error('[menteios:get-pacientes] Error al leer pacientes:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+async function handleAddPaciente(_event, paciente) {
+  try {
+    addPaciente(paciente)
+    return { success: true }
+  } catch (error) {
+    console.error('[menteios:add-paciente] Error al insertar paciente:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+async function handleDeletePaciente(_event, id) {
+  try {
+    deletePaciente(id)
+    return { success: true }
+  } catch (error) {
+    console.error('[menteios:delete-paciente] Error al eliminar paciente:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+// --- Handlers de IPC para Citas (persistencia real en SQLite) -------------
+async function handleGetCitas() {
+  try {
+    return { success: true, citas: getCitas() }
+  } catch (error) {
+    console.error('[menteios:get-citas] Error al leer citas:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+async function handleAddCita(_event, cita) {
+  try {
+    addCita(cita)
+    return { success: true }
+  } catch (error) {
+    console.error('[menteios:add-cita] Error al insertar cita:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+async function handleDeleteCita(_event, id) {
+  try {
+    deleteCita(id)
+    return { success: true }
+  } catch (error) {
+    console.error('[menteios:delete-cita] Error al eliminar cita:', error)
+    return { success: false, error: error.message }
+  }
+}
+
 app.whenReady().then(() => {
+  initDatabase()
   createWindow()
 
   ipcMain.handle('menteios:download-word', handleDownloadWord)
   ipcMain.handle('menteios:download-pdf', handleDownloadPdf)
   ipcMain.handle('menteios:bulk-export', handleBulkExport)
+  ipcMain.handle('menteios:get-pacientes', handleGetPacientes)
+  ipcMain.handle('menteios:add-paciente', handleAddPaciente)
+  ipcMain.handle('menteios:delete-paciente', handleDeletePaciente)
+  ipcMain.handle('menteios:get-citas', handleGetCitas)
+  ipcMain.handle('menteios:add-cita', handleAddCita)
+  ipcMain.handle('menteios:delete-cita', handleDeleteCita)
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
