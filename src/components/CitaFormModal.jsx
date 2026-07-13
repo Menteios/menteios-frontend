@@ -37,7 +37,7 @@ export default function CitaFormModal({ open, pacientes, defaultFecha, onClose, 
 
   function handlePacienteChange(event) {
     const pacienteId = event.target.value
-    const paciente = pacientes.find((p) => p.id === Number(pacienteId))
+    const paciente = pacientes.find((p) => p.id === pacienteId)
     setForm((prev) => ({
       ...prev,
       pacienteId,
@@ -47,7 +47,7 @@ export default function CitaFormModal({ open, pacientes, defaultFecha, onClose, 
 
   function handleSubmit(event) {
     event.preventDefault()
-    const paciente = pacientes.find((p) => p.id === Number(form.pacienteId))
+    const paciente = pacientes.find((p) => p.id === form.pacienteId)
     const tipoTerapiaFinal = esOtraTerapia ? form.tipoTerapiaOtro.trim() : form.tipoTerapia
 
     onSubmit({

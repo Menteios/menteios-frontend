@@ -1,11 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import DashboardLayout from './layouts/DashboardLayout'
 import Home from './pages/Home'
 import Pacientes from './pages/Pacientes'
 import Citas from './pages/Citas'
 import Sesiones from './pages/Sesiones'
 import Reportes from './pages/Reportes'
-import { citas as citasIniciales, pacientes as pacientesIniciales } from './mockData'
 
 // 'inicio' es la pantalla de entrada (Resumen general) y corresponde al
 // primer ítem del Sidebar. Cada id renderiza su propia pantalla — nada cae
@@ -50,29 +49,72 @@ function App() {
   const [activeTab, setActiveTab] = useState('inicio')
   // Única fuente de verdad para citas/sesiones de toda la app. Home, Citas
   // y Sesiones reciben `globalCitas` por props — ninguno mantiene copia
-  // local ni la vuelve a importar de mockData.js.
-  const [globalCitas, setGlobalCitas] = useState(citasIniciales)
-  const [pacientes, setPacientes] = useState(pacientesIniciales)
+  // local ni la vuelve a importar de mockData.js. Arranca vacío: se llena
+  // con datos reales de menteios.db apenas monta (ver useEffect de abajo),
+  // ya no con los arreglos fijos de mockData.js.
+  const [globalCitas, setGlobalCitas] = useState([])
+  const [pacientes, setPacientes] = useState([])
   const renderPage = PAGE_RENDERERS[activeTab] ?? PAGE_RENDERERS.inicio
+
+  // Carga inicial desde SQLite (vía electron/database.js + los canales IPC
+  // de electron/main.js). Pacientes y citas se piden en paralelo porque son
+  // independientes; cada uno solo pisa su propio estado si la respuesta
+  // vino con éxito, para no vaciar la pantalla ante un error de lectura.
+  useEffect(() => {
+    window.menteiosAPI.getPacientes().then((respuesta) => {
+      if (respuesta.success) setPacientes(respuesta.pacientes)
+      else console.error('No se pudieron cargar los pacientes:', respuesta.error)
+    })
+
+    window.menteiosAPI.getCitas().then((respuesta) => {
+      if (respuesta.success) setGlobalCitas(respuesta.citas)
+      else console.error('No se pudieron cargar las citas:', respuesta.error)
+    })
+  }, [])
 
   // --- Citas -----------------------------------------------------------
   // Toda cita nace como una sesión 'Pendiente' de 50 min sin notas — los
-  // mismos defaults que ya trae el mock — para que se comporte igual en
+  // mismos defaults que ya traía el mock — para que se comporte igual en
   // Sesiones (tarjeta clicable) sin importar desde qué pantalla se creó.
-  function handleAddCita(datos) {
-    setGlobalCitas((prev) => [
-      ...prev,
-      { id: Date.now(), estadoSesion: 'Pendiente', duracion: '50 min', notasClinicas: '', ...datos },
-    ])
+  // Se guarda primero en menteios.db vía IPC; el estado local solo se
+  // actualiza si la escritura fue exitosa, para que la UI nunca muestre
+  // una cita que en realidad no quedó persistida.
+  async function handleAddCita(datos) {
+    const nuevaCita = {
+      id: crypto.randomUUID(),
+      estadoSesion: 'Pendiente',
+      duracion: '50 min',
+      notasClinicas: '',
+      ...datos,
+    }
+
+    const respuesta = await window.menteiosAPI.addCita(nuevaCita)
+    if (respuesta.success) {
+      setGlobalCitas((prev) => [...prev, nuevaCita])
+    } else {
+      console.error('No se pudo guardar la cita:', respuesta.error)
+    }
   }
 
-  function handleDeleteCita(citaId) {
-    setGlobalCitas((prev) => prev.filter((cita) => cita.id !== citaId))
+  async function handleDeleteCita(citaId) {
+    const respuesta = await window.menteiosAPI.deleteCita(citaId)
+    if (respuesta.success) {
+      setGlobalCitas((prev) => prev.filter((cita) => cita.id !== citaId))
+    } else {
+      console.error('No se pudo eliminar la cita:', respuesta.error)
+    }
   }
 
   // --- Pacientes ---------------------------------------------------------
-  function handleAddPaciente(datos) {
-    setPacientes((prev) => [...prev, { id: Date.now(), estado: 'Activo', ...datos }])
+  async function handleAddPaciente(datos) {
+    const nuevoPaciente = { id: crypto.randomUUID(), estado: 'Activo', ...datos }
+
+    const respuesta = await window.menteiosAPI.addPaciente(nuevoPaciente)
+    if (respuesta.success) {
+      setPacientes((prev) => [...prev, nuevoPaciente])
+    } else {
+      console.error('No se pudo guardar el paciente:', respuesta.error)
+    }
   }
 
   function handleUpdatePaciente(pacienteId, datos) {
@@ -80,12 +122,17 @@ function App() {
   }
 
   // Integridad referencial: eliminar un paciente también elimina en cascada
-  // toda cita/sesión que le pertenezca (unidas por pacienteId). Como Home,
-  // Citas y Sesiones leen del mismo `globalCitas`, el paciente desaparece
-  // de las tres pantallas a la vez, sin lógica adicional en ellas.
-  function handleDeletePaciente(pacienteId) {
-    setPacientes((prev) => prev.filter((paciente) => paciente.id !== pacienteId))
-    setGlobalCitas((prev) => prev.filter((cita) => cita.pacienteId !== pacienteId))
+  // toda cita/sesión que le pertenezca — acá vía el ON DELETE CASCADE real
+  // de SQLite (electron/database.js), y en el estado local con el mismo
+  // filtro de siempre para que Home, Citas y Sesiones se actualicen juntas.
+  async function handleDeletePaciente(pacienteId) {
+    const respuesta = await window.menteiosAPI.deletePaciente(pacienteId)
+    if (respuesta.success) {
+      setPacientes((prev) => prev.filter((paciente) => paciente.id !== pacienteId))
+      setGlobalCitas((prev) => prev.filter((cita) => cita.pacienteId !== pacienteId))
+    } else {
+      console.error('No se pudo eliminar el paciente:', respuesta.error)
+    }
   }
 
   // --- Sesiones (notas clínicas + monto) -----------------------------------
