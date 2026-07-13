@@ -1,6 +1,8 @@
 import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron'
+import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { generateWordBuffer, generatePdfFile } from './documentGenerator.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -40,77 +42,95 @@ function createWindow() {
   }
 }
 
+// Nombre de archivo "de sistema": espacios a guion bajo para que el
+// resultado (ej. "Hoja_de_seguimiento.docx") sea prolijo tanto en
+// Descargas como en la carpeta que el usuario elija para la exportación
+// en lote.
 function nombreDeArchivo(machoteData, extension) {
-  const base = (machoteData?.nombreArchivo || 'documento').trim()
+  const base = (machoteData?.nombreArchivo || 'documento').trim().replace(/\s+/g, '_')
   return `${base}.${extension}`
 }
 
 // --- Handlers de IPC para Reportes (machotes clínicos) --------------------
-// Por ahora solo abren el diálogo nativo y registran en consola qué se
-// habría generado. El día que se conecte la generación real de archivos
-// (ej. librerías `docx` / `pdfkit` + `fs.writeFile`), ese código va acá,
-// justo donde están los comentarios TODO — ni el preload ni el renderer
-// necesitan cambiar.
+// Cada uno devuelve un objeto { success, ... } — nunca un string/null
+// suelto — para que el renderer distinga con claridad éxito de error
+// real. La generación del contenido (docx/pdfkit) vive en
+// documentGenerator.js; acá solo se coordina la escritura a disco, la
+// apertura automática y el manejo de errores.
+//
+// Word y PDF ya no preguntan dónde guardar: se generan directo en
+// Descargas (app.getPath('downloads')) — a diferencia de os.tmpdir(),
+// esa carpeta persiste después de cerrar la app, así el usuario puede
+// volver a encontrar el archivo aunque ya se haya abierto en Word/
+// Vista Previa. Después de escribir el archivo, shell.openPath lo abre
+// con la aplicación que macOS tenga asociada, para edición inmediata.
 async function handleDownloadWord(_event, machoteData) {
-  const result = await dialog.showSaveDialog({
-    title: 'Guardar documento Word',
-    defaultPath: nombreDeArchivo(machoteData, 'docx'),
-    filters: [{ name: 'Documento Word', extensions: ['docx'] }],
-  })
+  try {
+    const filePath = path.join(app.getPath('downloads'), nombreDeArchivo(machoteData, 'docx'))
+    const buffer = await generateWordBuffer(machoteData)
+    fs.writeFileSync(filePath, buffer)
 
-  if (result.canceled || !result.filePath) {
-    console.log('[menteios:download-word] Cancelado por el usuario.')
-    return null
+    const errorAlAbrir = await shell.openPath(filePath)
+    if (errorAlAbrir) {
+      console.warn('[menteios:download-word] Documento generado pero no se pudo abrir automáticamente:', errorAlAbrir)
+    }
+
+    console.log('[menteios:download-word] Documento generado en:', filePath)
+    return { success: true, filePath }
+  } catch (error) {
+    console.error('[menteios:download-word] Error al generar el documento:', error)
+    return { success: false, error: error.message }
   }
-
-  console.log('[menteios:download-word] Ruta seleccionada:', result.filePath)
-  console.log('[menteios:download-word] Datos del machote:', machoteData)
-  // TODO: generar el .docx real (ej. con la librería `docx`) y escribirlo
-  // en `result.filePath` con `fs.writeFile`.
-
-  return result.filePath
 }
 
 async function handleDownloadPdf(_event, machoteData) {
-  const result = await dialog.showSaveDialog({
-    title: 'Guardar documento PDF',
-    defaultPath: nombreDeArchivo(machoteData, 'pdf'),
-    filters: [{ name: 'Documento PDF', extensions: ['pdf'] }],
-  })
+  try {
+    const filePath = path.join(app.getPath('downloads'), nombreDeArchivo(machoteData, 'pdf'))
+    await generatePdfFile(machoteData, filePath)
 
-  if (result.canceled || !result.filePath) {
-    console.log('[menteios:download-pdf] Cancelado por el usuario.')
-    return null
+    const errorAlAbrir = await shell.openPath(filePath)
+    if (errorAlAbrir) {
+      console.warn('[menteios:download-pdf] Documento generado pero no se pudo abrir automáticamente:', errorAlAbrir)
+    }
+
+    console.log('[menteios:download-pdf] Documento generado en:', filePath)
+    return { success: true, filePath }
+  } catch (error) {
+    console.error('[menteios:download-pdf] Error al generar el documento:', error)
+    return { success: false, error: error.message }
   }
-
-  console.log('[menteios:download-pdf] Ruta seleccionada:', result.filePath)
-  console.log('[menteios:download-pdf] Datos del machote:', machoteData)
-  // TODO: generar el .pdf real (ej. con `pdfkit`) y escribirlo en
-  // `result.filePath` con `fs.writeFile`.
-
-  return result.filePath
 }
 
 async function handleBulkExport(_event, arrayMachotes) {
-  // Exportar varios machotes a la vez necesita una carpeta destino, no un
-  // único archivo — por eso acá se usa showOpenDialog con
-  // `openDirectory` en vez de showSaveDialog.
-  const result = await dialog.showOpenDialog({
-    title: 'Selecciona la carpeta destino para exportar',
-    properties: ['openDirectory', 'createDirectory'],
-  })
+  try {
+    const result = await dialog.showOpenDialog({
+      title: 'Selecciona la carpeta destino para exportar',
+      properties: ['openDirectory', 'createDirectory'],
+    })
 
-  if (result.canceled || result.filePaths.length === 0) {
-    console.log('[menteios:bulk-export] Cancelado por el usuario.')
-    return null
+    if (result.canceled || result.filePaths.length === 0) {
+      console.log('[menteios:bulk-export] Cancelado por el usuario.')
+      return { success: false, canceled: true }
+    }
+
+    const carpetaDestino = result.filePaths[0]
+
+    // Exportación en lote genera un .docx por machote — el formato "oficial
+    // editable" tiene más sentido para varios documentos a la vez que un
+    // PDF por archivo; se puede sumar la versión PDF más adelante sin
+    // tocar el resto de este handler.
+    for (const machote of arrayMachotes) {
+      const filePath = path.join(carpetaDestino, nombreDeArchivo(machote, 'docx'))
+      const buffer = await generateWordBuffer(machote)
+      fs.writeFileSync(filePath, buffer)
+    }
+
+    console.log(`[menteios:bulk-export] ${arrayMachotes.length} documento(s) exportado(s) a:`, carpetaDestino)
+    return { success: true, folderPath: carpetaDestino, count: arrayMachotes.length }
+  } catch (error) {
+    console.error('[menteios:bulk-export] Error al exportar en lote:', error)
+    return { success: false, error: error.message }
   }
-
-  const carpetaDestino = result.filePaths[0]
-  console.log(`[menteios:bulk-export] Exportando ${arrayMachotes.length} documento(s) a:`, carpetaDestino)
-  console.log('[menteios:bulk-export] Machotes seleccionados:', arrayMachotes)
-  // TODO: por cada machote, generar su archivo dentro de `carpetaDestino`.
-
-  return carpetaDestino
 }
 
 app.whenReady().then(() => {
