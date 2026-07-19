@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import DashboardLayout from './layouts/DashboardLayout'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
 import Home from './pages/Home'
 import Pacientes from './pages/Pacientes'
 import Citas from './pages/Citas'
@@ -47,30 +49,67 @@ const PAGE_RENDERERS = {
 
 function App() {
   const [activeTab, setActiveTab] = useState('inicio')
+  // Sesión del terapeuta logueado — `null` significa "sin sesión", y es lo
+  // que decide más abajo si se renderiza Login o el Dashboard. Vive acá
+  // (no en Login.jsx) porque toda la app la necesita: es el `usuarioId`
+  // que viaja en cada llamada a window.menteiosAPI de pacientes/citas.
+  const [usuarioActual, setUsuarioActual] = useState(null)
+  // Sin sesión, decide cuál de las dos pantallas de auth se muestra.
+  // handleLogout la vuelve a 'login' explícitamente, así cerrar sesión
+  // siempre lleva de vuelta al inicio del flujo, no a donde haya quedado
+  // parada la navegación de auth la última vez.
+  const [authView, setAuthView] = useState('login')
   // Única fuente de verdad para citas/sesiones de toda la app. Home, Citas
   // y Sesiones reciben `globalCitas` por props — ninguno mantiene copia
   // local ni la vuelve a importar de mockData.js. Arranca vacío: se llena
-  // con datos reales de menteios.db apenas monta (ver useEffect de abajo),
-  // ya no con los arreglos fijos de mockData.js.
+  // con datos reales de menteios.db apenas hay sesión (ver useEffect de
+  // abajo), ya no con los arreglos fijos de mockData.js.
   const [globalCitas, setGlobalCitas] = useState([])
   const [pacientes, setPacientes] = useState([])
   const renderPage = PAGE_RENDERERS[activeTab] ?? PAGE_RENDERERS.inicio
 
-  // Carga inicial desde SQLite (vía electron/database.js + los canales IPC
-  // de electron/main.js). Pacientes y citas se piden en paralelo porque son
-  // independientes; cada uno solo pisa su propio estado si la respuesta
-  // vino con éxito, para no vaciar la pantalla ante un error de lectura.
+  // Carga desde SQLite (vía electron/database.js + los canales IPC de
+  // electron/main.js), scopeada al terapeuta logueado — `usuarioActual.id`
+  // viaja en cada pedido, así el backend nunca devuelve pacientes/citas de
+  // otra cuenta. Se repite cada vez que cambia `usuarioActual` (login
+  // nuevo), no solo al montar.
   useEffect(() => {
-    window.menteiosAPI.getPacientes().then((respuesta) => {
+    if (!usuarioActual) return
+
+    window.menteiosAPI.getPacientes(usuarioActual.id).then((respuesta) => {
       if (respuesta.success) setPacientes(respuesta.pacientes)
       else console.error('No se pudieron cargar los pacientes:', respuesta.error)
     })
 
-    window.menteiosAPI.getCitas().then((respuesta) => {
+    window.menteiosAPI.getCitas(usuarioActual.id).then((respuesta) => {
       if (respuesta.success) setGlobalCitas(respuesta.citas)
       else console.error('No se pudieron cargar las citas:', respuesta.error)
     })
-  }, [])
+  }, [usuarioActual])
+
+  function handleLoginSuccess(usuario) {
+    setUsuarioActual(usuario)
+  }
+
+  // Registrarse deja logueada a la cuenta nueva de una — no tendría
+  // sentido pedirle a alguien que recién escribió su email/contraseña que
+  // los vuelva a escribir en Login para entrar.
+  function handleSignupSuccess(usuario) {
+    setUsuarioActual(usuario)
+  }
+
+  // Logout seguro: además de borrar la sesión, limpia pacientes/citas del
+  // estado — si no, quedarían en memoria y se verían un instante (o
+  // seguirían ahí si el siguiente login tarda) datos de la cuenta
+  // anterior. También vuelve a 'inicio' para que la próxima sesión
+  // arranque limpia, no en la pantalla donde quedó la anterior.
+  function handleLogout() {
+    setUsuarioActual(null)
+    setPacientes([])
+    setGlobalCitas([])
+    setActiveTab('inicio')
+    setAuthView('login')
+  }
 
   // --- Citas -----------------------------------------------------------
   // Toda cita nace como una sesión 'Pendiente' de 50 min sin notas — los
@@ -88,7 +127,7 @@ function App() {
       ...datos,
     }
 
-    const respuesta = await window.menteiosAPI.addCita(nuevaCita)
+    const respuesta = await window.menteiosAPI.addCita(nuevaCita, usuarioActual.id)
     if (respuesta.success) {
       setGlobalCitas((prev) => [...prev, nuevaCita])
     } else {
@@ -97,7 +136,7 @@ function App() {
   }
 
   async function handleDeleteCita(citaId) {
-    const respuesta = await window.menteiosAPI.deleteCita(citaId)
+    const respuesta = await window.menteiosAPI.deleteCita(citaId, usuarioActual.id)
     if (respuesta.success) {
       setGlobalCitas((prev) => prev.filter((cita) => cita.id !== citaId))
     } else {
@@ -109,7 +148,7 @@ function App() {
   async function handleAddPaciente(datos) {
     const nuevoPaciente = { id: crypto.randomUUID(), estado: 'Activo', ...datos }
 
-    const respuesta = await window.menteiosAPI.addPaciente(nuevoPaciente)
+    const respuesta = await window.menteiosAPI.addPaciente(nuevoPaciente, usuarioActual.id)
     if (respuesta.success) {
       setPacientes((prev) => [...prev, nuevoPaciente])
     } else {
@@ -126,7 +165,7 @@ function App() {
   // de SQLite (electron/database.js), y en el estado local con el mismo
   // filtro de siempre para que Home, Citas y Sesiones se actualicen juntas.
   async function handleDeletePaciente(pacienteId) {
-    const respuesta = await window.menteiosAPI.deletePaciente(pacienteId)
+    const respuesta = await window.menteiosAPI.deletePaciente(pacienteId, usuarioActual.id)
     if (respuesta.success) {
       setPacientes((prev) => prev.filter((paciente) => paciente.id !== pacienteId))
       setGlobalCitas((prev) => prev.filter((cita) => cita.pacienteId !== pacienteId))
@@ -169,8 +208,25 @@ function App() {
     setGlobalCitas((prev) => prev.filter((cita) => cita.id !== citaId))
   }
 
+  // Sin sesión, la única pantalla posible es Login o Signup — nunca el
+  // Dashboard. Nada de él se monta (ni siquiera oculto) hasta que
+  // `usuarioActual` exista, así no hay forma de que un componente pida
+  // pacientes/citas sin un usuarioId válido.
+  if (!usuarioActual) {
+    return authView === 'signup' ? (
+      <Signup onSignupSuccess={handleSignupSuccess} onNavigateToLogin={() => setAuthView('login')} />
+    ) : (
+      <Login onLoginSuccess={handleLoginSuccess} onNavigateToSignup={() => setAuthView('signup')} />
+    )
+  }
+
   return (
-    <DashboardLayout activeTab={activeTab} onSelectTab={setActiveTab}>
+    <DashboardLayout
+      activeTab={activeTab}
+      onSelectTab={setActiveTab}
+      usuarioActual={usuarioActual}
+      onLogout={handleLogout}
+    >
       {renderPage({
         navigate: setActiveTab,
         globalCitas,
